@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: API Gateway Client cross-account AssumeRole example
+
+# Parameters
+############
+Parameters:
+  ApiGatewayServiceAccountId:
+    Description: The AWS Account ID of the API Gateway service to be accessed
+    Type: String
+    Default: "056319353359"
+  ApiGatewayServiceIAMRole:
+    Description: The Role name in the other AWS account that should be assumed in order to invoke the API Gateway
+    Type: String
+    Default: "InvokeApiGatewayRole"
+
+# Resources
+###########
+Resources:
+  # IAM Roles and Policies.
+  AssumeRoleCrossAccountRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+  AssumeRoleCrossAccountInlinePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: AssumeRoleCrossAccountInlinePolicy
+      Roles:
+        - !Ref AssumeRoleCrossAccountRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Resource: !Sub "arn:aws:iam::${ApiGatewayServiceAccountId}:role/${ApiGatewayServiceIAMRole}"
+  AssumeRoleCrossAccountPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: AssumeRoleCrossAccountPolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Resource: !Sub "arn:aws:iam::${ApiGatewayServiceAccountId}:role/${ApiGatewayServiceIAMRole}"
